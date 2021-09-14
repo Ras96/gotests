@@ -5,11 +5,12 @@ import (
 	"io"
 	"io/ioutil"
 	"path"
-	"text/template"
+	"html/template"
 
 	"github.com/cweill/gotests/internal/models"
 	"github.com/cweill/gotests/internal/render/bindata"
 	"github.com/cweill/gotests/templates"
+	"github.com/Masterminds/sprig"
 )
 
 type Render struct {
@@ -24,7 +25,7 @@ func New() *Render {
 			"Param":    parameterName,
 			"Want":     wantName,
 			"Got":      gotName,
-		}),
+		}).Funcs(sprig.FuncMap()),
 	}
 
 	// default templates first
