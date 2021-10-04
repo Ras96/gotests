@@ -1,9 +1,9 @@
 package testdata
 
 import (
+	ht "html/template"
 	"reflect"
 	"testing"
-	ht "text/template"
 )
 
 func TestFoo22(t *testing.T) {
