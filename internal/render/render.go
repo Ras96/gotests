@@ -25,7 +25,7 @@ func New() *Render {
 			"Param":    parameterName,
 			"Want":     wantName,
 			"Got":      gotName,
-		}).Funcs(map[string]interface{}(sprig.FuncMap())),
+		}).Funcs(template.FuncMap(sprig.FuncMap())),
 	}
 
 	// default templates first
