@@ -52,7 +52,7 @@ Available options:
                          precedence over -template. This can also be set via environment
                          variable GOTESTS_TEMPLATE_DIR
 
-  -template             Specify custom test code templates, e.g. testify. This can also
+  -template             Specify custom test code templates, e.g. testify, **ras96**. This can also
                          be set via environment variable GOTESTS_TEMPLATE
 
   -template_params_file read external parameters to template by json with file
