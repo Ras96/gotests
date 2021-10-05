@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/cweill/gotests/internal/models"
+	"github.com/Ras96/gotests/internal/models"
 )
 
 const nFile = 7 // Number of files to be read from template (package) template (directory)
