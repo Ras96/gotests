@@ -1,4 +1,4 @@
-module github.com/Ras96/gotests
+module github.com/cweill/gotests
 
 require (
 	github.com/Masterminds/sprig v2.22.0+incompatible

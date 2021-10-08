@@ -11,7 +11,7 @@ import (
 	"os"
 	"regexp"
 
-	"github.com/Ras96/gotests"
+	"github.com/cweill/gotests"
 )
 
 const newFilePerm os.FileMode = 0644

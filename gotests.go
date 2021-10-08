@@ -10,10 +10,10 @@ import (
 	"sort"
 	"sync"
 
-	"github.com/Ras96/gotests/internal/goparser"
-	"github.com/Ras96/gotests/internal/input"
-	"github.com/Ras96/gotests/internal/models"
-	"github.com/Ras96/gotests/internal/output"
+	"github.com/cweill/gotests/internal/goparser"
+	"github.com/cweill/gotests/internal/input"
+	"github.com/cweill/gotests/internal/models"
+	"github.com/cweill/gotests/internal/output"
 )
 
 // Options provides custom filters and parameters for generating tests.
