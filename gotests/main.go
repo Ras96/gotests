@@ -34,7 +34,7 @@
 //                         precedence over -template. This can also be set via environment
 //                         variable GOTESTS_TEMPLATE_DIR
 //
-//   -template             Specify custom test code templates, e.g. testify. This can also
+//   -template             Specify custom test code templates, e.g. testify, ras96. This can also
 //                         be set via environment variable GOTESTS_TEMPLATE
 //
 //   -template_params_file read external parameters to template by json with file
@@ -57,7 +57,7 @@ var (
 	printInputs        = flag.Bool("i", false, "print test inputs in error messages")
 	writeOutput        = flag.Bool("w", false, "write output to (test) files instead of stdout")
 	templateDir        = flag.String("template_dir", "", `optional. Path to a directory containing custom test code templates. Takes precedence over -template. This can also be set via environment variable GOTESTS_TEMPLATE_DIR`)
-	template           = flag.String("template", "", `optional. Specify custom test code templates, e.g. testify. This can also be set via environment variable GOTESTS_TEMPLATE`)
+	template           = flag.String("template", "", `optional. Specify custom test code templates, e.g. testify, ras96. This can also be set via environment variable GOTESTS_TEMPLATE`)
 	templateParamsPath = flag.String("template_params_file", "", "read external parameters to template by json with file")
 	templateParams     = flag.String("template_params", "", "read external parameters to template by json with stdin")
 )
