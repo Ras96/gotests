@@ -1,4 +1,4 @@
-module github.com/cweill/gotests
+module github.com/Ras96/gotests
 
 replace github.com/cweill/gotests => ./
 
