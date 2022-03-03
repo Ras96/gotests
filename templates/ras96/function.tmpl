@@ -1,18 +1,3 @@
-{{define "assertion" -}}
-tt.assertion(t, {{if .OnlyReturnsError}}{{template "call" .}}{{else}}err{{end}}
-{{- if or (not .Subtests) .PrintInputs -}}
-	, fmt.Sprintf("{{template "message" .}}", {{template "inputs" .}})
-{{- end -}}
-)
-{{- end}}
-
-
-{{define "equal"}}assert.Equal{{if or (not .Subtests) .PrintInputs}}f{{end}}{{end}}
-
-
-{{define "msg"}}{{if or (not .Subtests) .PrintInputs}} , "{{template "message" .}}", {{template "inputs" .}}{{end}}{{end}}
-
-
 {{define "mockNew"}}
 {{- $rs := (regexSplit `\.` . -1)}}
 {{- if ge (len $rs) 2}}mock_{{index $rs 0}}.NewMock{{index $rs 1}}(ctrl)
@@ -20,101 +5,91 @@ tt.assertion(t, {{if .OnlyReturnsError}}{{template "call" .}}{{else}}err{{end}}
 {{- end}}
 {{- end}}
 
-
 {{define "function"}}
 {{- $f := .}}
 
 func {{.TestName}}(t *testing.T) {
-  {{- if .Parallel}}t.Parallel(){{end}}
-	{{- with .Receiver}}
-		{{- if and .IsStruct .Fields}}
-			type fields struct {
-				{{- range .Fields}}
-					{{lower (Field .)}} {{.Type.Value}}
-				{{- end}}
-			}
-		{{- end}}
-	{{- end}}
+	t.Parallel()
 	{{- if .TestParameters}}
-		type args struct {
-			{{- range .TestParameters}}
-				{{Param .}} {{.Type}}
-			{{- end}}
-		}
+	type args struct {
+		{{- range .TestParameters}}
+			{{Param .}} {{.Type}}
+		{{- end}}
+	}
 	{{- end}}
-	tests := {{ if .Named}}map[string]struct{{else}}[]struct{{end}} {
-		{{ if (not .Named)}}name string{{end}}
-		{{- with .Receiver}}
-			{{- if and .IsStruct .Fields}}
-				fields fields
-			{{- else}}
-				{{Receiver .}} {{.Type}}
-			{{- end}}
-		{{- end}}
-		{{- if .TestParameters}}
-			args args
-		{{- end}}
+	{{- with .Receiver}}{{if and .IsStruct .Fields}}
+	type fields struct {
+	{{- range .Fields}}
+		{{lower (Field .)}} {{.Type}}
+	{{- end}}
+	}
+	{{- end}}{{end}}
+	{{- with .Receiver}}{{if and .IsStruct .Fields}}
+	type setupFunc func(t *testing.T, f fields,
+		{{- if $f.TestParameters}}args args, {{end}}
+		{{- range $f.TestResults}}{{Want .}} {{.Type}}, {{end -}}
+	)
+	{{- end}}{{end}}
+	tests := map[string]struct {
+		{{with .Receiver}}{{if not .IsStruct}}{{Receiver .}} {{.Type}}{{end}}{{end}}
+		{{if .TestParameters}}args args{{end}}
 		{{- range .TestResults}}
 			{{Want .}} {{.Type}}
 		{{- end}}
-		setup func(
-			{{- with .Receiver}}{{if and .IsStruct .Fields}}f fields, {{end}}{{end}}
-			{{- if .TestParameters}}args args, {{end}}
-			{{- range .TestResults}}{{Want .}} {{.Type}}, {{end -}}
-)
-		{{- if .ReturnsError}}
-			assertion assert.ErrorAssertionFunc
-		{{- end}}
+		{{with .Receiver}}{{if and .IsStruct .Fields}}setup setupFunc{{end}}{{end}}
+		{{if .ReturnsError}}wantErr bool{{end}}
 	}{
 		// TODO: Add test cases.
 	}
-	for {{if (or .Subtests (not .IsNaked))}} {{if .Named}}name{{else}}_{{end}}, tt := {{end}} range tests {
-		{{- if .Subtests}}
-		{{- if .Parallel}}tt := tt;{{end}}
-		{{- if and .Parallel .Named}}name := name;{{ end }}
-		t.Run({{if .Named}}name{{else}}tt.name{{end}}, func(t *testing.T) {
-			{{- if .Parallel}}t.Parallel(){{end}}
-		{{- end}}
-			{{- with .Receiver}}
-				{{- if .IsStruct}}
-					// Setup mock
-					{{- if .Fields}}
-						ctrl := gomock.NewController(t)
-						tt.fields = fields {
+	for name, tt := range tests {
+		tt := tt
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+			{{- with .Receiver}}{{if and .IsStruct .Fields}}
+				ctrl := gomock.NewController(t)
+				f := fields {
 							{{- range .Fields}}
 								{{lower (Field .)}}: {{template "mockNew" .Type.Value}},
 							{{- end}}
 						}
+				tt.setup(t, f,
+					{{- if $f.TestParameters}}tt.args,{{end}}
+					{{- range $f.TestResults}}tt.{{Want .}},{{end -}}
+				)
+				{{Receiver .}} := {{if .Type.IsStar}}&{{end}}{{.Type.Value}}{
+					{{- range .Fields}}
+						{{.Name}}: f.{{Field .}},
 					{{- end}}
-					tt.setup({{if .Fields}}tt.fields,{{end}}{{- if $f.TestParameters}}tt.args,{{end}}{{- range $f.TestResults}}tt.{{Want .}},{{end}})
-					{{Receiver .}} := New{{title .Type.Value}}({{range .Fields}}tt.fields.{{lower (Field .)}}, {{end}})
-				{{- end}}
-			{{- end}}
+				}
+			{{- end}}{{end}}
 			{{- range .Parameters}}
 				{{- if .IsWriter}}
 					{{Param .}} := &bytes.Buffer{}
 				{{- end}}
 			{{- end}}
-			// Assertion
 			{{- if and (not .OnlyReturnsError) (not .OnlyReturnsOneValue) }}
 				{{template "results" $f}} {{template "call" $f}}
 			{{- end}}
 			{{- if .ReturnsError}}
-				{{template "assertion" $f}}
+				if {{if .OnlyReturnsError}}err := {{template "call" $f}};{{end}} (err != nil) != tt.wantErr {
+					t.Errorf("wantErr is %t, but err is %v", tt.wantErr, err)
+				}
 			{{- end}}
 			{{- range .TestResults}}
+				if diff := cmp.Diff(tt.{{Want .}},
 				{{- if .IsWriter}}
-					{{template "equal" $f}}(t, tt.{{Want .}}, {{Param .}}.String(){{template "msg" $f}})
+					{{Param .}}.String()
 				{{- else}}
 					{{- if $f.OnlyReturnsOneValue}}
-						{{template "equal" $f}}(t, tt.{{Want .}}, {{template "inline" $f}}{{template "msg" $f}})
+						{{- template "inline" $f}}
 					{{- else}}
-						{{template "equal" $f}}(t, tt.{{Want .}}, {{Got .}}{{template "msg" $f}})
+						{{- Got .}}
 					{{- end}}
-				{{- end}}
+				{{- end}}); len(diff) > 0 {
+					t.Errorf("Compare value is mismatch (-want +got):%s\n", diff)
+				}
 			{{- end}}
-		{{- if .Subtests }} }) {{- end -}}
+		})
 	}
 }
-
 {{end}}
