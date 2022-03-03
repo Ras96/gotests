@@ -8,9 +8,9 @@ import (
 	"text/template"
 
 	"github.com/Masterminds/sprig"
-	"github.com/cweill/gotests/internal/models"
-	"github.com/cweill/gotests/internal/render/bindata"
-	"github.com/cweill/gotests/templates"
+	"github.com/Ras96/gotests/internal/models"
+	"github.com/Ras96/gotests/internal/render/bindata"
+	"github.com/Ras96/gotests/templates"
 )
 
 type Render struct {

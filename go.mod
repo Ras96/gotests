@@ -1,7 +1,5 @@
 module github.com/Ras96/gotests
 
-replace github.com/cweill/gotests => ./
-
 require (
 	github.com/Masterminds/sprig v2.22.0+incompatible
 	golang.org/x/tools v0.0.0-20191109212701-97ad0ed33101
